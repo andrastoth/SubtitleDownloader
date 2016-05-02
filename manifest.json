@@ -1,0 +1,25 @@
+{
+    "manifest_version": 2,
+    "author": "Tóth András",
+    "name": "Video With Sub",
+    "short_name": "VWS",
+    "description": "This extension will able to download HTML5 video with subtitle.",
+    "version": "1.0.0",
+    "browser_action": {
+        "default_icon": "css/images/icon48.png"
+    },
+    "icons": {
+        "16": "css/images/icon16.png",
+        "48": "css/images/icon48.png",
+        "128": "css/images/icon128.png"
+    },
+    "content_scripts": [{
+        "matches": ["http://*/*", "https://*/*"],
+        "js": ["js/content.js"],
+        "run_at": "document_start"
+    }],
+    "background": {
+        "page": "background.html"
+    },
+    "permissions": ["tabs", "<all_urls>", "contextMenus", "storage", "downloads"]
+}

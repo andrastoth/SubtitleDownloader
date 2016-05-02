@@ -1,6 +1,8 @@
 # Subtitle Downloader
 This extension will able to download HTML5 video with subtitle.
 
+[ChromeStore] - Extension in store
+
 Version
 ----
 
@@ -33,5 +35,5 @@ MIT
 Author: Tóth András
 ---
 http://atandrastoth.co.uk/
-
+[ChromeStore]:https://chrome.google.com/webstore/detail/video-with-sub/gkolkfoonnghlgihmkclhbnnoidmgfoe
 2016-05-02

@@ -34,7 +34,12 @@ MIT
 
 Author: Tóth András
 ---
-2016-05-02
-http://atandrastoth.co.uk/
+<p>
+   http://atandrastoth.co.uk/
+</p>
+<p>
+   2016-05-02
+</p>
+
 [ChromeStore]:https://chrome.google.com/webstore/detail/video-with-sub/gkolkfoonnghlgihmkclhbnnoidmgfoe
 

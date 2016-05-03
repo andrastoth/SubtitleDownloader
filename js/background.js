@@ -1,6 +1,5 @@
 (function() {
     'use strict';
-    var lines = [];
 
     function onMessage(request, sender, sendResponse) {
         if (request.order == 'setContextMenu') {
@@ -21,23 +20,29 @@
         }
     }
 
-    function downloadStarted(downloadItem) {
-        if (lines.length) {
+    function startSubDownload(filename, lines) {
+        if (lines && lines.length) {
             var blob = window.URL.createObjectURL(new Blob([lines.join('\n')], {
                 type: 'text/plain;charset=utf-8;'
             }));
-            var fileName = downloadItem.filename.current.split('\\').reverse()[0];
+            var fileName = filename.split('\\').reverse()[0];
             chrome.downloads.download({
                 url: blob,
                 filename: fileName.split('.')[0].concat('.srt'),
                 saveAs: true
             });
-            lines = null;
+        }
+    }
+
+    function downloadStarted(id, lines, downloadItem) {
+        if (!downloadItem.error && id === downloadItem.id && downloadItem.filename.current) {
             chrome.downloads.onChanged.removeListener(downloadStarted);
+            startSubDownload(downloadItem.filename.current, lines);
         }
     }
 
     function clickHandler(index, info, tab) {
+        var lines;
         chrome.tabs.sendMessage(tab.id, {
             order: "DownloadVideoAndSub",
             index: index
@@ -47,8 +52,9 @@
                 url: obj.url,
                 filename: (obj.url.split('/').reverse()[0] || 'unknown.webm'),
                 saveAs: true
+            }, function(id) {
+                chrome.downloads.onChanged.addListener(downloadStarted.bind(null, id, lines));
             });
-            chrome.downloads.onChanged.addListener(downloadStarted);
         });
     }
     chrome.extension.onMessage.addListener(onMessage);

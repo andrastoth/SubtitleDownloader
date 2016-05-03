@@ -10,7 +10,7 @@
         function getTracks(callBack) {
             if (typeof callBack === 'function') {
                 callBack(textTrackList.filter(function(track) {
-                    return track.kind == 'subtitles'
+                    return track.kind == 'subtitles' && track.cues
                 }));
             }
         }

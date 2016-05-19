@@ -6,6 +6,12 @@ This extension will able to download HTML5 video with subtitle.
 Version
 ----
 
+1.2.0
+	- Some minor bug fixed
+
+Version
+----
+
 1.0.0
 
 Example usage

@@ -4,19 +4,46 @@
         vid = null;
     var SubtitleGrabber = function(selectedVideo) {
         var video = Q(selectedVideo);
-        var textTrackList = Array.prototype.slice.call(video.textTracks);
         var srtLines = [];
 
-        function getTracks(callBack) {
-            if (typeof callBack === 'function') {
-                callBack(textTrackList.filter(function(track) {
-                    return track.kind == 'subtitles' && track.cues
-                }));
+        function getTextTracks() {
+            if (video.textTracks.length) {
+                return Array.prototype.slice.call(video.textTracks).filter(function(track) {
+                    return track.kind == 'subtitles'
+                });
+            }
+            return [];
+        }
+
+        function initTextTracks(type, index, encoding, param) {
+            if (video.textTracks.length && index >= 0 && index < video.textTracks.length) {
+                var tracks = Array.prototype.slice.call(video.textTracks).filter(function(track) {
+                    return track.kind == 'subtitles'
+                });
+                tracks[index].mode = 'showing';
+                textTrackChanged(tracks[index], type, index, encoding, param);
+            } else {
+                throw new SubtitleGrabberError('Text Track is not found.');
+            }
+        }
+
+        function textTrackChanged(track, type, index, encoding, param) {
+            if (track.cues && track.cues.length) {
+                if (type == 'downloadSrt') {
+                    downloadSrt(index, encoding, param);
+                }
+                if (type == 'getSrtLines' && typeof param == 'function') {
+                    param(getSrtLines(index, encoding));
+                }
+            } else {
+                setTimeout(textTrackChanged.bind(null, track, type, index, encoding, param), 100);
             }
         }
 
         function createStrLines(trackIndex) {
-            var cues = Array.prototype.slice.call(textTrackList[trackIndex].cues);
+            srtLines = [];
+            var tracks = getTextTracks()[trackIndex];
+            var cues = tracks.cues ? Array.prototype.slice.call(tracks.cues) : [];
             cues.forEach(function(cue, index) {
                 processCue(cue, index);
             });
@@ -39,7 +66,7 @@
             return new Date(time).toISOString().match(/(\d{2}:\d{2}:\d{2}.\d{3})/)[0].replace('.', ',');
         }
 
-        function downloadSrt(index, filename, encoding) {
+        function downloadSrt(index, encoding, filename) {
             encoding = !!encoding ? encoding : 'utf-8';
             var a = window.document.createElement('a');
             a.href = window.URL.createObjectURL(new Blob([createStrLines(index).join('\n')], {
@@ -62,56 +89,75 @@
             return save.download;
         }
 
+        function SubtitleGrabberError(message) {
+            this.name = 'SubtitleGrabberError';
+            this.message = message || 'An error occurred!';
+            this.stack = (new Error()).stack;
+        }
+        SubtitleGrabberError.prototype = Object.create(Error.prototype);
+        SubtitleGrabberError.prototype.constructor = SubtitleGrabberError;
+
         function Q(el) {
             if (typeof el === 'string') {
-                return document.querySelectorAll(el)[0];
+                el = document.querySelectorAll(el)[0];
             }
-            return el;
+            if (el && el instanceof HTMLVideoElement) {
+                return el;
+            } else {
+                throw new SubtitleGrabberError('Element must be instance of HTMLVideoElement!');
+            }
         }
         return {
-            getTracks: function(callBack) {
-                return getTracks(callBack);
+            getTextTracks: function() {
+                return getTextTracks();
             },
-            downloadSrt: function(trackIndex, filename, encoding) {
-                return downloadSrt(trackIndex, filename, encoding);
+            downloadSrt: function(index, encoding, filename) {
+                initTextTracks('downloadSrt', index, encoding, filename);
             },
             downloadVideo: function() {
-                return downloadVideo();
+                downloadVideo();
             },
-            getSrtLines: function(index, encoding) {
-                return getSrtLines(index, encoding);
+            getSrtLines: function(index, encoding, callBack) {
+                initTextTracks('getSrtLines', index, encoding, callBack);
             }
         };
     };
 
     function mouseDown(e) {
         if (e.button == 2 && e.target.nodeName.toLowerCase() == 'video') {
+            var arr = [];
             vid = e.target;
             ripper = new SubtitleGrabber(e.target);
-            ripper.getTracks(function(tracks) {
-                var arr = [];
-                tracks.forEach(function(trk, index) {
-                    arr.push({
-                        index: index,
-                        label: trk.label,
-                        language: trk.language
-                    });
+            ripper.getTextTracks().forEach(function(trk, index) {
+                arr.push({
+                    index: index,
+                    label: trk.label,
+                    language: trk.language
                 });
-                chrome.extension.sendMessage({
-                    order: 'setContextMenu',
-                    tracks: arr
-                }, null);
             });
+            chrome.extension.sendMessage({
+                order: 'setContextMenu',
+                tracks: arr
+            }, null);
         }
     }
 
+    function sendMessage(url, lines) {
+        chrome.extension.sendMessage({
+            order: 'DownloadVideoAndSubResponse',
+            url: url,
+            lines: lines
+        }, null);
+    }
+
     function onMessage(request, sender, sendResponse) {
-        if (request.order == 'DownloadVideoAndSub') {
-            var lines = ripper.getSrtLines(request.index, 'utf-8');
-            sendResponse({
-                url: vid.src || vid.querySelector('source').src,
-                lines: lines
-            });
+        if (request.order == 'DownloadVideoAndSub' && vid) {
+            if (request.index === -1) {
+                sendMessage(vid.src || vid.querySelector('source').src, []);
+            } else {
+                ripper.getSrtLines(request.index, 'utf-8', sendMessage.bind(null, vid.src || vid.querySelector('source').src));
+                vid = null;
+            }
         }
     }
     window.document.addEventListener('mousedown', mouseDown, false);

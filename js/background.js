@@ -18,6 +18,16 @@
                 });
             });
         }
+        if (request.order == 'DownloadVideoAndSubResponse') {
+            var lines = request.lines;
+            chrome.downloads.download({
+                url: request.url,
+                filename: (request.url.split('/').reverse()[0] || 'unknown.webm'),
+                saveAs: true
+            }, function(id) {
+                chrome.downloads.onChanged.addListener(downloadStarted.bind(null, id, lines));
+            });
+        }
     }
 
     function startSubDownload(filename, lines) {
@@ -35,7 +45,7 @@
     }
 
     function downloadStarted(id, lines, downloadItem) {
-        if (!downloadItem.error && id === downloadItem.id && downloadItem.filename.current) {
+        if (!downloadItem.error && id === downloadItem.id && downloadItem.filename && downloadItem.filename.current) {
             chrome.downloads.onChanged.removeListener(downloadStarted);
             startSubDownload(downloadItem.filename.current, lines);
         }
@@ -46,16 +56,7 @@
         chrome.tabs.sendMessage(tab.id, {
             order: "DownloadVideoAndSub",
             index: index
-        }, function(obj) {
-            lines = obj.lines;
-            chrome.downloads.download({
-                url: obj.url,
-                filename: (obj.url.split('/').reverse()[0] || 'unknown.webm'),
-                saveAs: true
-            }, function(id) {
-                chrome.downloads.onChanged.addListener(downloadStarted.bind(null, id, lines));
-            });
-        });
+        }, null);
     }
     chrome.extension.onMessage.addListener(onMessage);
 })();

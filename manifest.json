@@ -6,7 +6,7 @@
     "description": "This extension will able to download HTML5 video with subtitle.",
     "version": "1.2.0",
     "browser_action": {
-        "default_icon": "css/images/icon48.png"
+        "default_icon": "css/images/icon48-gray.png"
     },
     "icons": {
         "16": "css/images/icon16.png",
@@ -21,5 +21,9 @@
     "background": {
         "page": "background.html"
     },
-    "permissions": ["tabs", "<all_urls>", "contextMenus", "storage", "downloads"]
+    "sandbox": {
+        "pages": ["videos.html "]
+    },
+    "web_accessible_resources": ["videos.html "],
+    "permissions": ["<all_urls>", "webRequest", "tabs", "contextMenus", "storage", "downloads"]
 }

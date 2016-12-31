@@ -6,6 +6,15 @@ This extension will able to download HTML5 video with subtitle.
 Version
 ----
 
+1.5.0
+	- Add Collect video, audio, subtitle url (youtube partially working)
+	- Drop subtitle to html5 video (Playback vindow)
+	- Save as video, audio, subtitle in Playback vindow
+	- flash video supported 
+
+Version
+----
+
 1.2.0
 	- Some minor bug fixed
 
@@ -31,6 +40,18 @@ Example usage
 
 <p>
    <img src = "vws3.jpg" width="100%"/>
+</p>
+
+<p>
+   <img src = "vws4.jpg" width="100%"/>
+</p>
+
+<p>
+   <img src = "vws5.jpg" width="100%"/>
+</p>
+
+<p>
+   <img src = "vws6.jpg" width="100%"/>
 </p>
 
 License

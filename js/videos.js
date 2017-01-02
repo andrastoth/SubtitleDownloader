@@ -12,20 +12,18 @@
 
     function getFilename(url) {
         try {
-            return url.split(/(\\|\/|=|\?)/g).find(function(item) {
-                return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|z)/gi).test(item)
+            var name = url.split(/(\\|\/|=|\?)/g).find(function(item) {
+                return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|ogg|mp3|wav)/gi).test(item)
             });
+            return name ? name : 'unknown';
         } catch (e) {
-            return "";
+            return "unknown.mp4";
         }
     }
 
     function onMessage(request, sender, sendResponse) {
-        if (request.order == 'SendDataToVideoTab' && request.data.video.length != 0) {
-            createVideoContainer(request.data);
-        }
-        if (request.order == 'SendDataToVideoTab' && request.data.subtitle.length != 0) {
-            createSubContainer(request.data);
+        if (request.order == 'SendDataToVideoTab' && request.data.length != 0) {
+            createContainer(request.data);
         }
     }
 
@@ -44,14 +42,17 @@
         ev.preventDefault();
     }
 
-    function drag(ev) {
-        dragUrl = ev.target.dataset.src;
+    function drag(sub, ev) {
+        dragUrl = sub;
+        document.querySelector('#video-tab-lnk').click();
     }
 
-    function drop(ev) {
-        ev.preventDefault();
-        if (ev.target.nodeName.toLowerCase() == 'video' && dragUrl != '') {
-            var track = ev.target.addTextTrack("captions", "English", "en");
+    function drop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+        if (e.target.nodeName.toLowerCase() == 'video' && dragUrl != '') {
+            var track = e.target.addTextTrack("captions", "English", "en");
             track.mode = "showing";
             httpGet(dragUrl, track);
             dragUrl = '';
@@ -73,56 +74,83 @@
         });
     }
 
-    function createSubContainer(data) {
+    function createContainer(data) {
         var subtitleContainer = document.querySelector(".sub-container");
-        var uniqueSub = data.subtitle.filter(function(item, pos) {
-            return data.subtitle.indexOf(item) == pos;
-        });
-        uniqueSub.forEach(function(sub) {
-            var div = document.createElement('div');
-            subtitleContainer.appendChild(div);
-            div.appendChild(['<h2 draggable="true"  data-src="', sub, '">', getFilename(sub).toString(), '</h2>'].join('').toDOM());
-            div.appendChild(['<button class="btn btn-green" data-src="', sub, '"><span>SaveAS</span></button>'].join('').toDOM());
-            div.appendChild('<button class="btn btn-orange"><span>Remove</span></button>'.toDOM());
-            div.querySelector('.btn-green').addEventListener('click', function() {
-                sendMessage(this.dataset.src, null);
-            });
-            div.querySelector('.btn-orange').addEventListener('click', function() {
-                this.parentElement.remove();
-            });
-            div.querySelector('h2').addEventListener('drag', drag);
-        });
-    }
-
-    function createVideoContainer(data) {
         var videoContainer = document.querySelector(".video-container");
-        var uniqueVideo = data.video.filter(function(item, pos) {
-            return data.video.indexOf(item) == pos;
+        data.filter(function(item) {
+            return item.type == 'subtitle';
+        }).forEach(function(item) {
+            var dom;
+            dom = createCard(['<div style="cursor: -webkit-grab;" class="w3-panel w3-blue w3-card-2" draggable="true"><p>', getFilename(item.url), '</p></div>'].join(''), '#subtitle-tab', item.url, false);
+            dom.querySelector('.w3-panel').addEventListener('drag', drag.bind(null, item.url));
+            dom.querySelector('.w3-green').addEventListener('click', function() {
+                var url = item.url;
+                sendMessage(url, null);
+            });
+            dom.querySelector('.w3-red').addEventListener('click', function() {
+                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                setBadgeForTabs();
+            });
         });
-        uniqueVideo.forEach(function(vid) {
-            var div = document.createElement('div');
-            videoContainer.appendChild(div);
-            if (!(/\.(flv)/gi).test(vid)) {
-                div.appendChild(['<video controls src="', vid, '"></video>'].join('').toDOM());
-                div.querySelector('video').addEventListener('error', function(event) {
-                    this.parentElement.remove();
+        data.filter(function(item) {
+            return item.type == 'audio';
+        }).forEach(function(item) {
+            var dom;
+            dom = createCard(['<audio controls src="', item.url, '"></audio>'].join(''), '#audio-tab', item.url, 'audio');
+            dom.querySelector('audio').addEventListener('error', function(event) {
+                this.parentElement.parentElement.remove();
+                setBadgeForTabs();
+            }, true);
+            dom.querySelector('.w3-green').addEventListener('click', function() {
+                var url = item.url;
+                sendMessage(url, null);
+            });
+            dom.querySelector('.w3-red').addEventListener('click', function() {
+                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                setBadgeForTabs();
+            });
+        });
+        data.filter(function(item) {
+            return item.type == 'video';
+        }).forEach(function(item) {
+            var dom;
+            if (!(/\.(flv)/gi).test(item.url)) {
+                dom = createCard(['<video controls src="', item.url, '"></video>'].join(''), '#video-tab', item.url, 'video');
+                dom.querySelector('video').addEventListener('error', function(event) {
+                    this.parentElement.parentElement.remove();
+                    setBadgeForTabs();
                 }, true);
+                dom.querySelector("video").addEventListener("play", function() {
+                    var arb = document.querySelector('[name="syncaudio"]:checked');
+                    if (arb != null) {
+                        var ad = arb.parentElement.parentElement.firstChild;
+                        ad.currentTime = this.currentTime;
+                        ad.play();
+                    }
+                });
+                dom.querySelector("video").addEventListener("pause", function() {
+                    var arb = document.querySelector('[name="syncaudio"]:checked');
+                    if (arb != null) {
+                        arb.parentElement.parentElement.firstChild.pause();
+                    }
+                });
+                dom.querySelector('video').addEventListener('dragover', allowDrop);
+                dom.querySelector('video').addEventListener('drop', drop);
             } else {
-                var iframe = document.createElement('iframe');
-                div.appendChild(iframe);
-                iframe.src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflv.php?url=' + decodeURI(vid) + '&width=' + Math.round(div.offsetWidth - div.offsetWidth * 0.1) + '&height=' + Math.round(div.offsetWidth / 16 * 9 - div.offsetWidth / 16 * 9 * 0.1);
+                dom = createCard('<iframe></iframe>', '#video-tab', item.url, 'flash');
+                var parent = dom.querySelector('iframe');
+                dom.querySelector('iframe').src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflv.php?url=' + decodeURI(item.url) + '&width=' + Math.round(parent.offsetWidth) + '&height=' + Math.round(parent.offsetHeight * 0.98);
             }
-            div.appendChild(['<button class="btn btn-green" data-src="', vid, '"><span>SaveAS</span></button>'].join('').toDOM());
-            div.appendChild('<button class="btn btn-orange"><span>Remove</span></button>'.toDOM());
-            div.querySelector('.btn-green').addEventListener('click', function() {
-                sendMessage(this.dataset.src, null);
+            dom.querySelector('.w3-green').addEventListener('click', function() {
+                var url = item.url;
+                sendMessage(url, null);
             });
-            div.querySelector('.btn-orange').addEventListener('click', function() {
-                this.parentElement.remove();
+            dom.querySelector('.w3-red').addEventListener('click', function() {
+                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                setBadgeForTabs();
             });
-            div.addEventListener('dragover', allowDrop);
-            div.addEventListener('drop', drop);
         });
+        setBadgeForTabs();
     }
 
     function sendMessage(url, lines) {
@@ -132,5 +160,41 @@
             lines: lines
         }, null);
     }
+
+    function changeTab(index, ev) {
+        var tablinks = document.querySelectorAll('.tablink');
+        [].forEach.call(tablinks, function(item) {
+            if (item == ev.target) {
+                item.classList.add('w3-red');
+            } else {
+                item.classList.remove('w3-red');
+            }
+        });
+        var tabs = document.querySelectorAll(".media-types");
+        [].forEach.call(tabs, function(item, i) {
+            if (index == i) {
+                item.classList.remove('w3-hide');
+            } else {
+                item.classList.add('w3-hide');
+            }
+        });
+    }
+
+    function setBadgeForTabs() {
+        var tablinks = document.querySelectorAll('.tablink');
+        [].forEach.call(tablinks, function(item) {
+            item.querySelector('span').innerText = document.querySelector('#' + item.id.replace('-lnk', '')).children.length;
+        });
+    }
+
+    function createCard(item, appendto, url, ch) {
+        var dom = ['<div class="w3-third w3-section"><div class="w3-card-8 w3-white">', item, '<div class="w3-container w3-white"><h4>', getFilename(url), '</h4>', ch ? '<input class="w3-radio" type="radio" name="sync' + ch + '"><label class="w3-validate">Synchronized play</label>' : '', '<div class="w3-container w3-center"><p><button class="w3-btn w3-green w3-margin">SaveAs</button><button class="w3-btn w3-red w3-margin">Remove</button></p></div></div></div></div>'].join("").toDOM();
+        document.querySelector(appendto).appendChild(dom);
+        var childs = document.querySelector(appendto).children;
+        return childs[childs.length - 1];
+    }
     chrome.extension.onMessage.addListener(onMessage);
+    document.querySelector('#video-tab-lnk').addEventListener('click', changeTab.bind(null, 0));
+    document.querySelector('#audio-tab-lnk').addEventListener('click', changeTab.bind(null, 1));
+    document.querySelector('#subtitle-tab-lnk').addEventListener('click', changeTab.bind(null, 2));
 })();

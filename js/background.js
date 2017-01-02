@@ -1,27 +1,21 @@
 (function() {
     'use strict';
-    var videosTabId = 0;
+    var videosTabId = null;
     var isCollectEnable = false;
-    var data = {
-        video: [],
-        subtitle: []
-    };
+    var data = [];
     chrome.browserAction.onClicked.addListener(function(tab) {
         isCollectEnable = !isCollectEnable;
-        chrome.browserAction.setIcon({
-            path: isCollectEnable ? 'css/images/icon16.png' : 'css/images/icon16-gray.png'
-        });
-        chrome.browserAction.setBadgeText({
-            text: ''
-        });
-        if (!isCollectEnable && videosTabId === 0) {
-            chrome.tabs.onCreated.addListener(tabCreated);
+        setBadgeText(isCollectEnable ? 'css/images/icon16.png' : 'css/images/icon16-gray.png', '');
+        if (!isCollectEnable && !videosTabId) {
             chrome.tabs.create({
                 url: 'videos.html'
+            }, function(tab) {
+                videosTabId = tab.id;
+                tabCreated();
             });
-        } else if (videosTabId !== 0) {
+        } else if (videosTabId) {
             chrome.tabs.remove(videosTabId, function() {
-                videosTabId = 0;
+                videosTabId = null;
             });
         }
     });
@@ -41,24 +35,21 @@
     function getFilename(url) {
         try {
             return url.split(/(\\|\/|=|\?)/g).find(function(item) {
-                return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|z)/gi).test(item)
+                return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|ogg|mp3|wav)/gi).test(item)
             });
         } catch (e) {
             return "";
         }
     }
 
-    function tabCreated(tab) {
-        videosTabId = tab.id;
-        chrome.tabs.onCreated.removeListener(tabCreated);
+    function tabCreated() {
         setTimeout(function() {
             chrome.extension.sendMessage({
                 order: 'SendDataToVideoTab',
                 data: data
             }, null);
-            data.video = [];
-            data.subtitle = [];
-        }, 1000);
+            data = [];
+        }, 300);
     }
 
     function onMessage(request, sender, sendResponse) {
@@ -119,47 +110,67 @@
         }, null);
     }
 
-    function arrayContains(array, item) {
-        return (array.length != 0 && array.indexOf(item) > -1);
+    function setBadgeText(icon, txt) {
+        chrome.browserAction.setIcon({
+            path: icon
+        });
+        chrome.browserAction.setBadgeText({
+            text: txt.toString()
+        });
     }
-    chrome.extension.onMessage.addListener(onMessage);
-    chrome.webRequest.onBeforeRequest.addListener(function(details) {
+
+    function arrayContains(array, item) {
+        return array.length != 0 && array.find(function(elem) {
+            return elem.url.indexOf(item) > -1
+        });
+    }
+
+    function onBeforeRequest(details) {
         if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(mp4|srt|vtt|avi|webm|flv$|mkv)/gi).test(details.url)) {
             if ((/\.(vtt|srt)/gi).test(details.url)) {
-                if (!arrayContains(data.subtitle, details.url)) {
-                    data.subtitle.push(details.url);
+                if (!arrayContains(data, details.url)) {
+                    data.push({
+                        type: 'subtitle',
+                        url: details.url
+                    });
                 }
             } else {
-                if (!arrayContains(data.video, details.url)) {
-                    data.video.push(details.url);
-                    chrome.browserAction.setIcon({
-                        path: 'css/images/icon16-red.png'
+                if (!arrayContains(data, details.url)) {
+                    data.push({
+                        type: 'video',
+                        url: details.url
                     });
-                    chrome.browserAction.setBadgeText({
-                        text: data.video.length.toString()
-                    });
+                    setBadgeText('css/images/icon16-red.png', data.length);
                 }
             }
-        } else if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(googlevideo.com)/gi).test(details.url) && (/&range/gi).test(details.url)) {
+        } else if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(mp3|ogg|wav)/gi).test(details.url)) {
+            if (!arrayContains(data, details.url)) {
+                data.push({
+                    type: 'audio',
+                    url: details.url
+                });
+                setBadgeText('css/images/icon16-red.png', data.length);
+            }
+        } else if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(googlevideo.com)/gi).test(details.url) && (/&rbuf/gi).test(details.url)) {
             var url = removeParameterFromUrl(details.url, 'range');
             url = removeParameterFromUrl(url, 'rn');
             url = updateUrlParameter(url, 'rbuf', '4096');
-            if (!arrayContains(data.video, url)) {
-                data.video.push(url);
-                chrome.browserAction.setIcon({
-                    path: 'css/images/icon16-red.png'
+            if (!arrayContains(data, url)) {
+                data.push({
+                    type: (/mime=audio/gi).test(url) ? 'audio' : 'video',
+                    url: url
                 });
-                chrome.browserAction.setBadgeText({
-                    text: data.video.length.toString()
-                });
+                setBadgeText('css/images/icon16-red.png', data.length);
             }
         }
-    }, {
+    }
+    chrome.extension.onMessage.addListener(onMessage);
+    chrome.webRequest.onBeforeRequest.addListener(onBeforeRequest, {
         urls: ['<all_urls>']
     });
     chrome.tabs.onRemoved.addListener(function(tabid, removed) {
         if (tabid == videosTabId) {
-            videosTabId = 0;
+            videosTabId = null;
         }
     });
 })();

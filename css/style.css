@@ -1,5 +1,5 @@
 body {
-    position: static;
+    background: lightgray;
     height: 100%;
     margin: 0;
     padding: 0;
@@ -447,7 +447,13 @@ h1 .red-icon {
     color: white;
 }
 
-.data-container {}
+.data-container {
+    padding-top: 74px;
+    position: relative;
+    display: inline-block;
+    height: 100%;
+    width: 100%;
+}
 
 .video-container, .sub-container {
     margin: 2%;
@@ -459,17 +465,21 @@ h1 .red-icon {
 .video-container {
     float: left;
 }
-.video-container video{
-    width:100%;
+
+.video-container video, .video-container audio {
+    background: black;
+    width: 100%;
 }
-.video-container iframe{
+
+.video-container iframe {
     height: 480px;
     border: 0;
     overflow: hidden;
     width: calc(100% - 2%);
-    background: transparent;
+    background: black;
     margin: 2%;
 }
+
 .sub-container {
     float: right;
 }
@@ -479,6 +489,12 @@ h1 .red-icon {
 }
 
 .header-div {
+    -webkit-box-shadow: 0px 0px 10px rgba(50, 50, 50, 0.9);
+    -moz-box-shadow: 0px 0px 10px rgba(50, 50, 50, 0.9);
+    box-shadow: 0px 0px 10px rgba(50, 50, 50, 0.9);
+    z-index: 1;
+    position: fixed;
     margin-bottom: 10px;
     background-color: #383636;
+    width: 100%;
 }

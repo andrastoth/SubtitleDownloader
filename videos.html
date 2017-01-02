@@ -1,19 +1,49 @@
-<!doctype html>
 <html>
     <head>
         <title>Video With Sub</title>
         <meta charset="UTF-8">
         <meta name="mobile-web-app-capable" content="yes">
-        <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no, minimal-ui">
-        <link href="css/style.css" rel="stylesheet" type="text/css"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="css/w3.css">
+        <link rel="stylesheet" href="css/w3-theme-indigo.css">
     </head>
-    <body style="position:relative;">
-        <div class="header-div">
-            <h1><img class="red-icon"><span>Video With Sub</span><img class="red-icon"></h1>
+    <body class="w3-theme">
+        <div class="w3-row" style="z-index: 1;position: fixed;width: 100%;">
+            <div class="w3-row w3-padding-8 w3-theme-d2 w3-xlarge">
+                <div class="w3-quarter">
+                    <ul class="w3-navbar ">
+                        <li>
+                            <a href="#"><img class="w3-circle" src="css/images/icon48-red.png" style="height:35px;"></a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="w3-half w3-half w3-center">
+                    <h3>Video With Sub</h3>
+                </div>
+                <div class="w3-quarter">
+                    <ul class="w3-navbar">
+                        <li class="w3-navitem w3-right w3-hide-small"><img class="w3-circle" src="css/images/icon48-red.png" style="height:35px;"></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="w3-row">
+                <div class="w3-row w3-card-8">
+                    <a style="cursor: pointer;">
+                        <div id="video-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo w3-red">Video<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                    </a>
+                    <a style="cursor: pointer;">
+                        <div id="audio-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Audio<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                    </a>
+                    <a style="cursor: pointer;">
+                        <div id="subtitle-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Subtitle<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                    </a>
+                </div>
+            </div>
         </div>
-        <div class="data-container">
-            <div class="video-container"></div>
-            <div class="sub-container"></div>
+        <div class="w3-container" style="padding-top: 8em;">
+            <div id="video-tab" class="w3-container w3-row-padding w3-theme media-types"></div>
+            <div id="audio-tab" class="w3-container w3-row-padding w3-theme media-types w3-hide"></div>
+            <div id="subtitle-tab" class="w3-container w3-row-padding w3-theme media-types w3-hide"></div>
         </div>
         <script src="js/videos.js"></script>
     </body>

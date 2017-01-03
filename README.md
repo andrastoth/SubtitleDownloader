@@ -5,10 +5,15 @@ This extension will able to download HTML5 video, audio and subtitle.
 
 Version
 ----
+2.1.5
+	- Fix some minor bug
+
+Version
+----
 2.1.0
 	- Fix some minor bug
 	- Youtube video + audio synchronized playback
-  	- Update user interface with w3.CSS
+  - Update user interface with w3.CSS
 
 Version
 ----

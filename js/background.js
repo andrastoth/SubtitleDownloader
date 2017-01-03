@@ -20,10 +20,12 @@
         }
     });
 
-    function removeParameterFromUrl(url, parameter) {
+    function removeUrlParameters(url, parameters) {
         var arr = url.split('&');
-        return arr.filter(function(a) {
-            return a.indexOf(parameter) == -1
+        return arr.filter(function(u) {
+            return !parameters.find(function(p) {
+                return u.indexOf(p) == 0
+            });
         }).join('&');
     }
 
@@ -34,11 +36,12 @@
 
     function getFilename(url) {
         try {
-            return url.split(/(\\|\/|=|\?)/g).find(function(item) {
+            var fn = url.split(/(\\|\/|=|\?)/g).find(function(item) {
                 return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|ogg|mp3|wav)/gi).test(item)
             });
+            return fn == '' ? 'unknown.mp4' : fn;
         } catch (e) {
-            return "";
+            return 'unknown.mp4';
         }
     }
 
@@ -73,7 +76,7 @@
             var lines = request.lines;
             chrome.downloads.download({
                 url: request.url,
-                filename: (getFilename(request.url) || 'unknown.mp4'),
+                filename: getFilename(request.url),
                 saveAs: true
             }, function(id) {
                 chrome.downloads.onChanged.addListener(downloadStarted.bind(null, id, lines));
@@ -130,6 +133,7 @@
             if ((/\.(vtt|srt)/gi).test(details.url)) {
                 if (!arrayContains(data, details.url)) {
                     data.push({
+                        date: new Date().getTime(),
                         type: 'subtitle',
                         url: details.url
                     });
@@ -137,6 +141,7 @@
             } else {
                 if (!arrayContains(data, details.url)) {
                     data.push({
+                        date: new Date().getTime(),
                         type: 'video',
                         url: details.url
                     });
@@ -146,17 +151,17 @@
         } else if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(mp3|ogg|wav)/gi).test(details.url)) {
             if (!arrayContains(data, details.url)) {
                 data.push({
+                    date: new Date().getTime(),
                     type: 'audio',
                     url: details.url
                 });
                 setBadgeText('css/images/icon16-red.png', data.length);
             }
         } else if (isCollectEnable && !(/\.(js)/gi).test(details.url) && (/\.(googlevideo.com)/gi).test(details.url) && (/&rbuf/gi).test(details.url)) {
-            var url = removeParameterFromUrl(details.url, 'range');
-            url = removeParameterFromUrl(url, 'rn');
-            url = updateUrlParameter(url, 'rbuf', '4096');
+            var url = removeUrlParameters(details.url, ['range=', 'rn=', 'rbuf=', 'cpn=', 'c=', 'cver=']);
             if (!arrayContains(data, url)) {
                 data.push({
+                    date: new Date().getTime(),
                     type: (/mime=audio/gi).test(url) ? 'audio' : 'video',
                     url: url
                 });

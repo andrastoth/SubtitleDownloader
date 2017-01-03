@@ -64,9 +64,9 @@
         var cue = null;
         srtLines.forEach(function(line, index) {
             if ((/(-->)/gi).test(line)) {
-                var start = new Date('2000-01-01 ' + line.split('-->')[0].replace(',', '.'));
-                var end = new Date('2000-01-01 ' + line.split('-->')[1].replace(',', '.'));
-                cue = new VTTCue(parseFloat((start.getHours() * 3600 + start.getMinutes() * 60 + start.getSeconds() + start.getMilliseconds() / 1000).toFixed(1)), parseFloat((end.getHours() * 3600 + end.getMinutes() * 60 + end.getSeconds() + end.getMilliseconds() / 1000).toFixed(1)), "");
+                var start = (new Date('2000-01-01 ' + line.split('-->')[0].replace(',', '.')) - new Date('2000-01-01 00:00:00.000')) / 1000;
+                var end = (new Date('2000-01-01 ' + line.split('-->')[1].replace(',', '.')) - new Date('2000-01-01 00:00:00.000')) / 1000;
+                cue = new VTTCue(start, end, "");
                 track.addCue(cue);
             } else if (cue != null && isNaN(line.trim())) {
                 cue.text += line.trim() + '\n';
@@ -131,7 +131,9 @@
                 dom.querySelector("video").addEventListener("pause", function() {
                     var arb = document.querySelector('[name="syncaudio"]:checked');
                     if (arb != null) {
-                        arb.parentElement.parentElement.firstChild.pause();
+                        var ad = arb.parentElement.parentElement.firstChild;
+                        ad.currentTime = this.currentTime;
+                        ad.pause();
                     }
                 });
                 dom.querySelector('video').addEventListener('dragover', allowDrop);
@@ -139,7 +141,7 @@
             } else {
                 dom = createCard('<iframe></iframe>', '#video-tab', item.url, 'flash');
                 var parent = dom.querySelector('iframe');
-                dom.querySelector('iframe').src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflv.php?url=' + decodeURI(item.url) + '&width=' + Math.round(parent.offsetWidth) + '&height=' + Math.round(parent.offsetHeight * 0.98);
+                dom.querySelector('iframe').src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflvv2.php?url=' + decodeURI(item.url) + '&width=' + Math.round(parent.offsetWidth) + '&height=' + Math.round(parent.offsetHeight * 0.98);
             }
             dom.querySelector('.w3-green').addEventListener('click', function() {
                 var url = item.url;

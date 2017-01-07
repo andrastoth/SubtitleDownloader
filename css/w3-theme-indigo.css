@@ -98,7 +98,7 @@ audio {
 }
 
 html {
-    user-select: none;
+    -webkit-user-select: none;
     overflow-y: scroll;
 }
 
@@ -106,7 +106,7 @@ html {
     transition: visibility 0.5s, opacity 0.5s linear;
 }
 
-input[type=radio].w3-radio {
+input[type=checkbox].w3-checkbox {
     width: 16px;
     height: 16px;
     position: relative;
@@ -135,4 +135,27 @@ input[type=radio].w3-radio {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+}
+
+#iframe-tab iframe {
+    background: white;
+    border: 0;
+    width: 100%;
+    height: calc(100% - 9em);
+}
+
+.fa {
+    color: #4caf50;
+    cursor: pointer;
+}
+
+.fa-close {
+    color: #f44336;
+    margin-left: 10px;
+}
+
+input[type=url] {
+    padding-right: 1em;
+    padding-left: 1em;
+    width: 80%;
 }

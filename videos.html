@@ -5,6 +5,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <link rel="stylesheet" href="css/w3.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link rel="stylesheet" href="css/w3-theme-indigo.css">
     </head>
     <body class="w3-theme">
@@ -13,38 +14,43 @@
                 <div class="w3-quarter">
                     <ul class="w3-navbar ">
                         <li>
-                            <a href="#"><img class="w3-circle" src="css/images/icon48-red.png" style="height:35px;"></a>
+                            <a href="#"><img class="w3-circle" src="css/images/icon48-red.png" style="height:26px;"></a>
                         </li>
                     </ul>
                 </div>
                 <div class="w3-half w3-half w3-center">
-                    <h3>Video With Sub</h3>
+                    <input type="url" class="w3-border-0 w3-show-inline-block w3-theme" id="url-input" value="https://www.google.com">&nbsp;<i class="w3-xlarge fa fa-arrow-right"></i><i class="w3-xlarge fa fa-close"></i>
                 </div>
                 <div class="w3-quarter">
-                    <ul class="w3-navbar">
-                        <li class="w3-navitem w3-right w3-hide-small"><img class="w3-circle" src="css/images/icon48-red.png" style="height:35px;"></li>
-                    </ul>
+   
                 </div>
             </div>
             <div class="w3-row">
                 <div class="w3-row w3-card-8">
                     <a style="cursor: pointer;">
-                        <div id="video-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo w3-red">Video<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                        <div id="video-tab-lnk" class="w3-quarter tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo w3-red">Video<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
                     </a>
                     <a style="cursor: pointer;">
-                        <div id="audio-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Audio<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                        <div id="audio-tab-lnk" class="w3-quarter tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Audio<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
                     </a>
                     <a style="cursor: pointer;">
-                        <div id="subtitle-tab-lnk" class="w3-third tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Subtitle<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                        <div id="subtitle-tab-lnk" class="w3-quarter tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Subtitle<span style="margin-left: 10px;" class="w3-badge w3-green">0</span></div>
+                    </a>
+                    <a style="cursor: pointer;">
+                        <div id="iframe-tab-lnk" class="w3-quarter tablink w3-bottombar w3-hover-light-grey w3-padding w3-indigo">Browser</div>
                     </a>
                 </div>
             </div>
         </div>
         <div class="w3-container" style="padding-top: 8em;">
-            <div id="video-tab" class="w3-container w3-row-padding w3-theme media-types"></div>
-            <div id="audio-tab" class="w3-container w3-row-padding w3-theme media-types w3-hide"></div>
-            <div id="subtitle-tab" class="w3-container w3-row-padding w3-theme media-types w3-hide"></div>
+            <div id="video-tab" class="w3-container w3-row-padding w3-theme w3-animate-opacity media-types"></div>
+            <div id="audio-tab" class="w3-container w3-row-padding w3-theme w3-animate-opacity media-types w3-hide"></div>
+            <div id="subtitle-tab" class="w3-container w3-row-padding w3-theme w3-animate-opacity media-types w3-hide"></div>
+            <div id="iframe-tab" class="w3-container w3-row-padding w3-animate-opacity content-types w3-theme w3-hide">
+                <iframe></iframe>
+            </div>
         </div>
+        <script src="js/SubtitleGrabber.js"></script>
         <script src="js/videos.js"></script>
     </body>
 </html>

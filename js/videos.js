@@ -74,85 +74,111 @@
         });
     }
 
+    function isExistsUrl(data) {
+        return [].find.call(document.querySelectorAll('[data-url]'), function(item) {
+            return data.find(function(d) {
+                return d.url == item.dataset.url;
+            });
+        });
+    }
+
     function createContainer(data) {
-        var subtitleContainer = document.querySelector(".sub-container");
-        var videoContainer = document.querySelector(".video-container");
-        data.filter(function(item) {
-            return item.type == 'subtitle';
-        }).forEach(function(item) {
-            var dom;
-            dom = createCard(['<div style="cursor: -webkit-grab;" class="w3-panel w3-blue w3-card-2" draggable="true"><p>', getFilename(item.url), '</p></div>'].join(''), '#subtitle-tab', item.url, false);
-            dom.querySelector('.w3-panel').addEventListener('drag', drag.bind(null, item.url));
-            dom.querySelector('.w3-green').addEventListener('click', function() {
-                var url = item.url;
-                sendMessage(url, null);
+        if (!isExistsUrl(data)) {
+            var subtitleContainer = document.querySelector(".sub-container");
+            var videoContainer = document.querySelector(".video-container");
+            data.filter(function(item) {
+                return item.type == 'subtitle';
+            }).forEach(function(item) {
+                var dom;
+                dom = createCard(['<div style="cursor: -webkit-grab;" class="w3-panel w3-blue w3-card-2" draggable="true"><p>', getFilename(item.url), '</p></div>'].join(''), '#subtitle-tab', item.url, false);
+                dom.querySelector('.w3-panel').addEventListener('drag', drag.bind(null, item.url));
+                dom.querySelector('.w3-green').addEventListener('click', function() {
+                    var url = item.url;
+                    sendMessage(url, null);
+                });
+                dom.querySelector('.w3-red').addEventListener('click', function() {
+                    this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                    setBadgeForTabs();
+                });
             });
-            dom.querySelector('.w3-red').addEventListener('click', function() {
-                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
-                setBadgeForTabs();
-            });
-        });
-        data.filter(function(item) {
-            return item.type == 'audio';
-        }).forEach(function(item) {
-            var dom;
-            dom = createCard(['<audio controls src="', item.url, '"></audio>'].join(''), '#audio-tab', item.url, 'audio');
-            dom.querySelector('audio').addEventListener('error', function(event) {
-                this.parentElement.parentElement.remove();
-                setBadgeForTabs();
-            }, true);
-            dom.querySelector('.w3-green').addEventListener('click', function() {
-                var url = item.url;
-                sendMessage(url, null);
-            });
-            dom.querySelector('.w3-red').addEventListener('click', function() {
-                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
-                setBadgeForTabs();
-            });
-        });
-        data.filter(function(item) {
-            return item.type == 'video';
-        }).forEach(function(item) {
-            var dom;
-            if (!(/\.(flv)/gi).test(item.url)) {
-                dom = createCard(['<video controls src="', item.url, '"></video>'].join(''), '#video-tab', item.url, 'video');
-                dom.querySelector('video').addEventListener('error', function(event) {
+            data.filter(function(item) {
+                return item.type == 'audio';
+            }).forEach(function(item) {
+                var dom;
+                dom = createCard(['<audio controls src="', item.url, '"></audio>'].join(''), '#audio-tab', item.url, 'audio');
+                dom.querySelector('audio').addEventListener('error', function(event) {
                     this.parentElement.parentElement.remove();
                     setBadgeForTabs();
                 }, true);
-                dom.querySelector("video").addEventListener("play", function() {
-                    var arb = document.querySelector('[name="syncaudio"]:checked');
-                    if (arb != null) {
-                        var ad = arb.parentElement.parentElement.firstChild;
-                        ad.currentTime = this.currentTime;
-                        ad.play();
-                    }
+                dom.querySelector('.w3-green').addEventListener('click', function() {
+                    var url = item.url;
+                    sendMessage(url, null);
                 });
-                dom.querySelector("video").addEventListener("pause", function() {
-                    var arb = document.querySelector('[name="syncaudio"]:checked');
-                    if (arb != null) {
-                        var ad = arb.parentElement.parentElement.firstChild;
-                        ad.currentTime = this.currentTime;
-                        ad.pause();
-                    }
+                dom.querySelector('.w3-red').addEventListener('click', function() {
+                    this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                    setBadgeForTabs();
                 });
-                dom.querySelector('video').addEventListener('dragover', allowDrop);
-                dom.querySelector('video').addEventListener('drop', drop);
-            } else {
-                dom = createCard('<iframe></iframe>', '#video-tab', item.url, 'flash');
-                var parent = dom.querySelector('iframe');
-                dom.querySelector('iframe').src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflvv2.php?url=' + decodeURI(item.url) + '&width=' + Math.round(parent.offsetWidth) + '&height=' + Math.round(parent.offsetHeight * 0.98);
-            }
-            dom.querySelector('.w3-green').addEventListener('click', function() {
-                var url = item.url;
-                sendMessage(url, null);
+                dom.querySelector('[name="syncaudio"]').addEventListener('change', function() {
+                    var self = this;
+                    [].forEach.call(document.querySelectorAll('[name="syncaudio"]'), function(au) {
+                        if (au != self) {
+                            au.checked = false;
+                        }
+                    });
+                });
             });
-            dom.querySelector('.w3-red').addEventListener('click', function() {
-                this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
-                setBadgeForTabs();
+            data.filter(function(item) {
+                return item.type == 'video';
+            }).forEach(function(item) {
+                var dom;
+                if (!(/\.(flv)/gi).test(item.url)) {
+                    dom = createCard(['<video controls src="', item.url, '"></video>'].join(''), '#video-tab', item.url, 'video');
+                    dom.querySelector('video').addEventListener('error', function(event) {
+                        this.parentElement.parentElement.remove();
+                        setBadgeForTabs();
+                    }, true);
+                    dom.querySelector("video").addEventListener("play", function() {
+                        var arb = document.querySelector('[name="syncaudio"]:checked');
+                        if (arb != null) {
+                            var ad = arb.parentElement.parentElement.firstChild;
+                            ad.currentTime = this.currentTime;
+                            ad.play();
+                        }
+                    });
+                    dom.querySelector("video").addEventListener("pause", function() {
+                        var arb = document.querySelector('[name="syncaudio"]:checked');
+                        if (arb != null) {
+                            var ad = arb.parentElement.parentElement.firstChild;
+                            ad.currentTime = this.currentTime;
+                            ad.pause();
+                        }
+                    });
+                    dom.querySelector('video').addEventListener('dragover', allowDrop);
+                    dom.querySelector('video').addEventListener('drop', drop);
+                } else {
+                    dom = createCard('<iframe></iframe>', '#video-tab', item.url, 'video');
+                    var parent = dom.querySelector('iframe');
+                    dom.querySelector('iframe').src = 'http://atandrastoth.co.uk/main/system/FLVHelper/embededflvv2.php?url=' + decodeURI(item.url) + '&width=' + Math.round(parent.offsetWidth) + '&height=' + Math.round(parent.offsetHeight * 0.98);
+                }
+                dom.querySelector('[name="syncvideo"]').addEventListener('change', function() {
+                    var self = this;
+                    [].forEach.call(document.querySelectorAll('[name="syncvideo"]'), function(au) {
+                        if (au != self) {
+                            au.checked = false;
+                        }
+                    });
+                });
+                dom.querySelector('.w3-green').addEventListener('click', function() {
+                    var url = item.url;
+                    sendMessage(url, null);
+                });
+                dom.querySelector('.w3-red').addEventListener('click', function() {
+                    this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
+                    setBadgeForTabs();
+                });
             });
-        });
-        setBadgeForTabs();
+            setBadgeForTabs();
+        }
     }
 
     function sendMessage(url, lines) {
@@ -172,7 +198,7 @@
                 item.classList.remove('w3-red');
             }
         });
-        var tabs = document.querySelectorAll(".media-types");
+        var tabs = document.querySelectorAll(".media-types, .content-types");
         [].forEach.call(tabs, function(item, i) {
             if (index == i) {
                 item.classList.remove('w3-hide');
@@ -183,20 +209,40 @@
     }
 
     function setBadgeForTabs() {
-        var tablinks = document.querySelectorAll('.tablink');
+        var tablinks = document.querySelectorAll('#video-tab-lnk, #audio-tab-lnk, #subtitle-tab-lnk');
         [].forEach.call(tablinks, function(item) {
             item.querySelector('span').innerText = document.querySelector('#' + item.id.replace('-lnk', '')).children.length;
         });
     }
 
     function createCard(item, appendto, url, ch) {
-        var dom = ['<div class="w3-third w3-section"><div class="w3-card-8 w3-white">', item, '<div class="w3-container w3-white"><h4>', getFilename(url), '</h4>', ch ? '<input class="w3-radio" type="radio" name="sync' + ch + '"><label class="w3-validate">Synchronized play</label>' : '', '<div class="w3-container w3-center"><p><button class="w3-btn w3-green w3-margin">SaveAs</button><button class="w3-btn w3-red w3-margin">Remove</button></p></div></div></div></div>'].join("").toDOM();
+        var dom = ['<div class="w3-third w3-section"><div class="w3-card-8 w3-white" data-url="', url, '">', item, '<div class="w3-container w3-white"><h4>', getFilename(url), '</h4>', ch ? '<input class="w3-checkbox" type="checkbox" name="sync' + ch + '"><label class="w3-validate">Synchronized play</label>' : '', '<div class="w3-container w3-center"><p><button class="w3-btn w3-green w3-margin">SaveAs</button><button class="w3-btn w3-red w3-margin">Remove</button></p></div></div></div></div>'].join("").toDOM();
         document.querySelector(appendto).appendChild(dom);
         var childs = document.querySelector(appendto).children;
         return childs[childs.length - 1];
+    }
+
+    function openBrowser() {
+        var input = document.querySelector('#url-input');
+        var iframe = document.querySelector('#iframe-tab iframe');
+        if (isValidURL(input.value)) {
+            iframe.src = input.value;
+            document.querySelector('#iframe-tab-lnk').click();
+        }
+    }
+
+    function isValidURL(str) {
+        var regex = /(http|https):\/\/(\w+:{0,1}\w*)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%!\-\/]))?/;
+        return regex.test(str);
     }
     chrome.extension.onMessage.addListener(onMessage);
     document.querySelector('#video-tab-lnk').addEventListener('click', changeTab.bind(null, 0));
     document.querySelector('#audio-tab-lnk').addEventListener('click', changeTab.bind(null, 1));
     document.querySelector('#subtitle-tab-lnk').addEventListener('click', changeTab.bind(null, 2));
+    document.querySelector('#iframe-tab-lnk').addEventListener('click', changeTab.bind(null, 3));
+    document.querySelector('.fa-arrow-right').addEventListener('click', openBrowser);
+    document.querySelector('.fa-close').addEventListener('click', function() {
+        document.querySelector('#url-input').value = '';
+        document.querySelector('#iframe-tab iframe').removeAttribute('src');
+    });
 })();

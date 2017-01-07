@@ -4,7 +4,7 @@
     "name": "Video With Sub",
     "short_name": "VWS",
     "description": "This extension will able to download HTML5 video with subtitle.",
-    "version": "2.1.5",
+    "version": "2.5.0",
     "browser_action": {
         "default_icon": "css/images/icon48-gray.png"
     },
@@ -15,7 +15,7 @@
     },
     "content_scripts": [{
         "matches": ["http://*/*", "https://*/*"],
-        "js": ["js/content.js"],
+        "js": ["js/SubtitleGrabber.js", "js/content.js"],
         "run_at": "document_start"
     }],
     "background": {
@@ -25,5 +25,5 @@
         "pages": ["videos.html "]
     },
     "web_accessible_resources": ["videos.html "],
-    "permissions": ["<all_urls>", "webRequest", "tabs", "contextMenus", "storage", "downloads"]
+    "permissions": ["<all_urls>", "webRequest", "tabs", "contextMenus", "storage", "downloads", "webRequestBlocking", "\u003Call_urls>"]
 }

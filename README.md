@@ -5,6 +5,11 @@ This extension will able to download HTML5 video, audio and subtitle.
 
 Version
 ----
+2.5.5
+	- Add download video + sub with right click on preview tab
+
+Version
+----
 2.1.5
 	- Fix some minor bug
 

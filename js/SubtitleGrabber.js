@@ -5,7 +5,7 @@ var SubtitleGrabber = function(selectedVideo) {
     function getTextTracks() {
         if (video.textTracks.length) {
             return Array.prototype.slice.call(video.textTracks).filter(function(track) {
-                return track.kind == 'subtitles'
+                return track.kind == 'subtitles' || track.kind == 'captions'
             });
         }
         return [];
@@ -14,7 +14,7 @@ var SubtitleGrabber = function(selectedVideo) {
     function initTextTracks(type, index, encoding, param) {
         if (video.textTracks.length && index >= 0 && index < video.textTracks.length) {
             var tracks = Array.prototype.slice.call(video.textTracks).filter(function(track) {
-                return track.kind == 'subtitles'
+                return track.kind == 'subtitles' || track.kind == 'captions'
             });
             tracks[index].mode = 'showing';
             textTrackChanged(tracks[index], type, index, encoding, param);

@@ -1,6 +1,7 @@
 (function() {
     'use strict';
-    var dragUrl;
+    var dragUrl, ripper = null,
+        vid = null;
     String.prototype.toDOM = function() {
         var d = document,
             i, a = d.createElement("div"),
@@ -15,7 +16,7 @@
             var name = url.split(/(\\|\/|=|\?)/g).find(function(item) {
                 return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|ogg|mp3|wav)/gi).test(item)
             });
-            return name ? name : 'unknown';
+            return name ? name : 'unknown.mp4';
         } catch (e) {
             return "unknown.mp4";
         }
@@ -24,6 +25,14 @@
     function onMessage(request, sender, sendResponse) {
         if (request.order == 'SendDataToVideoTab' && request.data.length != 0) {
             createContainer(request.data);
+        }
+        if (request.order == 'DownloadVideoAndSub' && vid) {
+            if (request.index === -1) {
+                sendMessage(0, vid.src || vid.querySelector('source').src, []);
+            } else {
+                ripper.getSrtLines(request.index, 'utf-8', sendMessage.bind(null, 0, vid.src || vid.querySelector('source').src));
+                vid = null;
+            }
         }
     }
 
@@ -94,7 +103,7 @@
                 dom.querySelector('.w3-panel').addEventListener('drag', drag.bind(null, item.url));
                 dom.querySelector('.w3-green').addEventListener('click', function() {
                     var url = item.url;
-                    sendMessage(url, null);
+                    sendMessage(0, url, null);
                 });
                 dom.querySelector('.w3-red').addEventListener('click', function() {
                     this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
@@ -112,7 +121,7 @@
                 }, true);
                 dom.querySelector('.w3-green').addEventListener('click', function() {
                     var url = item.url;
-                    sendMessage(url, null);
+                    sendMessage(0, url, null);
                 });
                 dom.querySelector('.w3-red').addEventListener('click', function() {
                     this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
@@ -170,7 +179,7 @@
                 });
                 dom.querySelector('.w3-green').addEventListener('click', function() {
                     var url = item.url;
-                    sendMessage(url, null);
+                    sendMessage(0, url, null);
                 });
                 dom.querySelector('.w3-red').addEventListener('click', function() {
                     this.parentElement.parentElement.parentElement.parentElement.parentElement.remove();
@@ -181,7 +190,7 @@
         }
     }
 
-    function sendMessage(url, lines) {
+    function sendMessage(ev, url, lines) {
         chrome.extension.sendMessage({
             order: 'DownloadVideoAndSubResponse',
             url: url,
@@ -206,6 +215,25 @@
                 item.classList.add('w3-hide');
             }
         });
+    }
+
+    function mouseDown(e) {
+        if (e.button == 2 && e.target.nodeName.toLowerCase() == 'video') {
+            var arr = [];
+            vid = e.target;
+            ripper = new SubtitleGrabber(e.target);
+            ripper.getTextTracks().forEach(function(trk, index) {
+                arr.push({
+                    index: index,
+                    label: trk.label,
+                    language: trk.language
+                });
+            });
+            chrome.extension.sendMessage({
+                order: 'setContextMenu',
+                tracks: arr
+            }, null);
+        }
     }
 
     function setBadgeForTabs() {
@@ -241,6 +269,7 @@
     document.querySelector('#subtitle-tab-lnk').addEventListener('click', changeTab.bind(null, 2));
     document.querySelector('#iframe-tab-lnk').addEventListener('click', changeTab.bind(null, 3));
     document.querySelector('.fa-arrow-right').addEventListener('click', openBrowser);
+    window.document.addEventListener('mousedown', mouseDown, false);
     document.querySelector('.fa-close').addEventListener('click', function() {
         document.querySelector('#url-input').value = '';
         document.querySelector('#iframe-tab iframe').removeAttribute('src');

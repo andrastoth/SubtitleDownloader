@@ -44,12 +44,12 @@
 
     function getFilename(url) {
         try {
-            var fn = url.split(/(\\|\/|=|\?)/g).find(function(item) {
+            var name = url.split(/(\\|\/|=|\?)/g).find(function(item) {
                 return (/\.(mp4|srt|vtt|avi|webm|flv$|mkv|ogg|mp3|wav)/gi).test(item)
             });
-            return fn == '' ? 'unknown.mp4' : fn;
+            return name ? name : 'unknown.mp4';
         } catch (e) {
-            return 'unknown.mp4';
+            return "unknown.mp4";
         }
     }
 
